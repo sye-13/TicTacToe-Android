@@ -22,11 +22,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.designsystem.ui.theme.TicTacToeTheme
 import com.example.tictactoe.R
-import com.example.tictactoe.domain.model.Player
-import com.example.tictactoe.domain.usecase.GameStatusResult
-import com.example.tictactoe.domain.usecase.MoveValidationResult
 import com.example.tictactoe.ui.model.BoardUi
 import com.example.tictactoe.ui.model.CellUi
+import com.example.tictactoe.ui.model.GameStatusResultUi
+import com.example.tictactoe.ui.model.MoveValidationResultUi
+import com.example.tictactoe.ui.model.PlayerUi
 
 @Composable
 fun TicTacToeScreen(
@@ -58,9 +58,9 @@ fun TicTacToeScreen(
 @Composable
 private fun Playing(
     board: BoardUi,
-    currentPlayer: Player,
+    currentPlayer: PlayerUi,
     onCellClicked: (Int) -> Unit,
-    moveValidationResult: MoveValidationResult?
+    moveValidationResult: MoveValidationResultUi?
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -86,9 +86,9 @@ private fun Playing(
             moveValidationResult?.let {
                 Text(
                     text = when (it) {
-                        is MoveValidationResult.Invalid.CellOutOfBound -> stringResource(R.string.invalid_move_out_of_bound)
-                        is MoveValidationResult.Invalid.CellAlreadyOccupied -> stringResource(R.string.invalid_move_already_occupied)
-                        MoveValidationResult.Valid -> ""
+                        is MoveValidationResultUi.Invalid.CellOutOfBound -> stringResource(R.string.invalid_move_out_of_bound)
+                        is MoveValidationResultUi.Invalid.CellAlreadyOccupied -> stringResource(R.string.invalid_move_already_occupied)
+                        MoveValidationResultUi.Valid -> ""
                     },
                     color = Color.Red,
                     style = MaterialTheme.typography.bodyMedium,
@@ -143,7 +143,7 @@ fun Cell(cell: CellUi) {
 
 @Composable
 fun GameOver(
-    gameOutcome: GameStatusResult.GameOver,
+    gameOutcome: GameStatusResultUi.GameOver,
     onNewGameClicked: () -> Unit
 ) {
     Column(
@@ -160,13 +160,13 @@ fun GameOver(
         Spacer(modifier = Modifier.height(8.dp))
 
         when (gameOutcome) {
-            is GameStatusResult.GameOver.Draw -> Text(
+            is GameStatusResultUi.GameOver.Draw -> Text(
                 text = stringResource(R.string.outcome_draw),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
 
-            is GameStatusResult.GameOver.Won ->
+            is GameStatusResultUi.GameOver.Won ->
                 Text(
                     text = stringResource(R.string.outcome_winner, gameOutcome.winner.name),
                     style = MaterialTheme.typography.bodyLarge,

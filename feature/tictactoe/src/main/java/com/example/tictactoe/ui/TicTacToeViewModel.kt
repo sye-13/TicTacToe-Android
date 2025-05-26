@@ -1,5 +1,7 @@
 package com.example.tictactoe.ui
 
+import android.os.Parcelable
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tictactoe.domain.model.Board
@@ -10,6 +12,9 @@ import com.example.tictactoe.domain.usecase.GameStatusResult
 import com.example.tictactoe.domain.usecase.MoveValidationResult
 import com.example.tictactoe.domain.usecase.MoveValidationUseCase
 import com.example.tictactoe.ui.model.BoardUi
+import com.example.tictactoe.ui.model.GameStatusResultUi
+import com.example.tictactoe.ui.model.MoveValidationResultUi
+import com.example.tictactoe.ui.model.PlayerUi
 import com.example.tictactoe.ui.model.toEntity
 import com.example.tictactoe.ui.model.toUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,26 +23,35 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 import javax.inject.Inject
 
-sealed class TicTacToeState {
+@Parcelize
+sealed class TicTacToeState : Parcelable {
+    @Parcelize
     data class Playing(
         val board: BoardUi = BoardUi.empty(),
-        val currentPlayer: Player = Player.X,
-        val moveValidationResult: MoveValidationResult? = null,
+        val currentPlayer: PlayerUi = PlayerUi.X,
+        val moveValidationResult: MoveValidationResultUi? = null,
     ) : TicTacToeState()
 
-    data class GameOver(val gameOutcome: GameStatusResult.GameOver) : TicTacToeState()
+    @Parcelize
+    data class GameOver(val gameOutcome: GameStatusResultUi.GameOver) : TicTacToeState()
 }
+
+private const val uiStateKey = "uiState"
 
 @HiltViewModel
 class TicTacToeViewModel @Inject constructor(
+    private val savedStateHandle: SavedStateHandle,
     private val moveValidationUseCase: MoveValidationUseCase,
     private val checkGameStatusUseCase: CheckGameStatusUseCase,
 ) : ViewModel() {
 
     private val _uiState: MutableStateFlow<TicTacToeState> =
-        MutableStateFlow(TicTacToeState.Playing())
+        MutableStateFlow(
+            savedStateHandle.get<TicTacToeState>(uiStateKey) ?: TicTacToeState.Playing()
+        )
 
     val uiState: StateFlow<TicTacToeState> = _uiState.asStateFlow()
 
@@ -53,16 +67,16 @@ class TicTacToeViewModel @Inject constructor(
                 emitPlayingState(
                     board = currentBoard,
                     currentPlayer = state.currentPlayer,
-                    moveValidationResult = validationResult
+                    moveValidationResult = validationResult.toUiModel()
                 )
                 return@launch
             }
 
-            val updatedBoard = applyMove(currentBoard, cellIndex, state.currentPlayer)
+            val updatedBoard = applyMove(currentBoard, cellIndex, state.currentPlayer.toEntity())
             when (val gameStatus = checkGameStatusUseCase(updatedBoard)) {
                 is GameStatusResult.GameOver -> {
                     _uiState.update {
-                        TicTacToeState.GameOver(gameOutcome = gameStatus)
+                        TicTacToeState.GameOver(gameOutcome = gameStatus.toUiModel() as GameStatusResultUi.GameOver)
                     }
                 }
 
@@ -93,8 +107,8 @@ class TicTacToeViewModel @Inject constructor(
 
     private fun emitPlayingState(
         board: Board,
-        currentPlayer: Player,
-        moveValidationResult: MoveValidationResult? = null
+        currentPlayer: PlayerUi,
+        moveValidationResult: MoveValidationResultUi? = null
     ) {
         _uiState.update {
             TicTacToeState.Playing(
@@ -103,12 +117,20 @@ class TicTacToeViewModel @Inject constructor(
                 moveValidationResult = moveValidationResult
             )
         }
+        saveState(_uiState.value)
     }
 
-    private fun togglePlayer(currentPlayer: Player): Player =
-        if (currentPlayer == Player.X) Player.O else Player.X
+    private fun togglePlayer(currentPlayer: PlayerUi): PlayerUi =
+        if (currentPlayer == PlayerUi.X) PlayerUi.O else PlayerUi.X
 
     private fun resetState() {
-        _uiState.value = TicTacToeState.Playing()
+        _uiState.update {
+            TicTacToeState.Playing()
+        }
+        saveState(_uiState.value)
+    }
+
+    private fun saveState(state: TicTacToeState) {
+        savedStateHandle[uiStateKey] = state
     }
 }
