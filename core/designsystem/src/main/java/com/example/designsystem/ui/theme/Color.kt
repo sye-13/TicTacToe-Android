@@ -1,4 +1,4 @@
-package com.example.tictactoe.ui.theme
+package com.example.designsystem.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
