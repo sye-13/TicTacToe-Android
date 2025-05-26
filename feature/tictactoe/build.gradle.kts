@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.core.jvm)
     testImplementation(libs.junit)
     testImplementation(libs.org.junit.jupiter.api)
+    testRuntimeOnly(libs.org.junit.jupiter.engine)
     testImplementation(kotlin("test"))
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.io.mockk)

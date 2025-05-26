@@ -1,11 +1,17 @@
 package com.example.tictactoe.ui
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.example.tictactoe.domain.model.Player
 import com.example.tictactoe.domain.usecase.CheckGameStatusUseCase
 import com.example.tictactoe.domain.usecase.GameStatusResult
 import com.example.tictactoe.domain.usecase.MoveValidationResult
 import com.example.tictactoe.domain.usecase.MoveValidationUseCase
+import com.example.tictactoe.ui.model.BoardUi
+import com.example.tictactoe.ui.model.GameStatusResultUi
+import com.example.tictactoe.ui.model.MoveValidationResultUi
+import com.example.tictactoe.ui.model.PlayerUi
+import com.example.tictactoe.ui.model.applyMove
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,112 +21,225 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 
-@ExperimentalCoroutinesApi
+@OptIn(ExperimentalCoroutinesApi::class)
 class TicTacToeViewModelTest {
 
     private lateinit var viewModel: TicTacToeViewModel
-    private val mockMoveValidationUseCase: MoveValidationUseCase = mockk()
-    private val mockCheckGameStatusUseCase: CheckGameStatusUseCase = mockk()
+    private val moveValidationUseCase: MoveValidationUseCase = mockk()
+    private val checkGameStatusUseCase: CheckGameStatusUseCase = mockk()
+    private val savedStateHandle = SavedStateHandle()
 
-    private val testDispatcher = StandardTestDispatcher()
+    private val testDispatcher = UnconfinedTestDispatcher()
 
     @BeforeEach
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = TicTacToeViewModel(mockMoveValidationUseCase, mockCheckGameStatusUseCase)
-    }
-
-    @Test
-    fun `test valid move updates state correctly`() = runTest {
-        every { mockMoveValidationUseCase(any(), any()) } returns MoveValidationResult.Valid
-        every { mockCheckGameStatusUseCase(any()) } returns GameStatusResult.InProgress
-
-        val cellIndex = 0
-        viewModel.onCellClicked(cellIndex)
-        advanceUntilIdle()
-
-        viewModel.uiState.test {
-            val firstEmission = awaitItem()
-            assertTrue(firstEmission is TicTacToeState.Playing)
-
-            val playingState = firstEmission as TicTacToeState.Playing
-            assertEquals(playingState.currentPlayer, Player.O)  // Player X started
-        }
-    }
-
-    @Test
-    fun `test invalid move triggers validation error`() = runTest {
-        val invalidMoveResult = MoveValidationResult.Invalid.CellOutOfBound
-        every { mockMoveValidationUseCase(any(), any()) } returns invalidMoveResult
-
-        viewModel.onCellClicked(-1)
-        advanceUntilIdle()
-
-        viewModel.uiState.test {
-            val firstEmission = awaitItem()
-            assertTrue(firstEmission is TicTacToeState.Playing)
-
-            val playingState = firstEmission as TicTacToeState.Playing
-            assertEquals(playingState.moveValidationResult, invalidMoveResult)
-        }
-    }
-
-    @Test
-    fun `test game over state when the game finishes`() = runTest {
-        val gameOverResult = GameStatusResult.GameOver.Won(winner = Player.X)
-        every { mockMoveValidationUseCase(any(), any()) } returns MoveValidationResult.Valid
-        every { mockCheckGameStatusUseCase(any()) } returns gameOverResult
-
-        val cellIndex = 0
-        viewModel.onCellClicked(cellIndex)
-        advanceUntilIdle()
-
-        viewModel.uiState.test {
-            val firstEmission = awaitItem()
-            assertTrue(firstEmission is TicTacToeState.GameOver)
-
-            val gameOverState = firstEmission as TicTacToeState.GameOver
-            assertEquals(gameOverState.gameOutcome, gameOverResult)
-        }
-    }
-
-    @Test
-    fun `test new game reset`() = runTest {
-        val gameOverResult = GameStatusResult.GameOver.Won(winner = Player.X)
-        every { mockMoveValidationUseCase(any(), any()) } returns MoveValidationResult.Valid
-        every { mockCheckGameStatusUseCase(any()) } returns gameOverResult
-        viewModel.onCellClicked(0)
-        advanceUntilIdle()
-
-        viewModel.onNewGameClicked()
-        advanceUntilIdle()
-
-        viewModel.uiState.test {
-            val playingEmission = awaitItem()
-            assertTrue(playingEmission is TicTacToeState.Playing)
-            val playingState = playingEmission as TicTacToeState.Playing
-            assertEquals(playingState.currentPlayer, Player.X)  // Player X starts
-        }
-    }
-
-    @Test
-    fun `test no reset if game is not over`() = runTest {
-        every { mockMoveValidationUseCase(any(), any()) } returns MoveValidationResult.Valid
-        every { mockCheckGameStatusUseCase(any()) } returns GameStatusResult.InProgress
-        viewModel.onCellClicked(0)
-        advanceUntilIdle()
-
-        viewModel.onNewGameClicked()
-        advanceUntilIdle()
-
-        viewModel.uiState.test {
-            val firstEmission = awaitItem()
-            assertTrue(firstEmission is TicTacToeState.Playing)
-        }
+        viewModel = TicTacToeViewModel(
+            savedStateHandle,
+            moveValidationUseCase,
+            checkGameStatusUseCase
+        )
     }
 
     @AfterEach
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `default state is Playing`() = runTest {
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.Playing)
+        }
+    }
+
+    @Test
+    fun `default playing state has empty board and X as current player`() = runTest {
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            val playingState = state as TicTacToeState.Playing
+            assertEquals(BoardUi.empty(), playingState.board)
+            assertEquals(PlayerUi.X, playingState.currentPlayer)
+        }
+    }
+
+    @Test
+    fun `move on invalid cell shows validation error`() = runTest {
+        every {
+            moveValidationUseCase(
+                any(),
+                any()
+            )
+        } returns MoveValidationResult.Invalid.CellOutOfBound
+
+        viewModel.onCellClicked(-1)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.Playing)
+            assertEquals(
+                MoveValidationResultUi.Invalid.CellOutOfBound,
+                (state as TicTacToeState.Playing).moveValidationResult
+            )
+        }
+    }
+
+    @Test
+    fun `valid move progresses to next player`() = runTest {
+        every { moveValidationUseCase(any(), any()) } returns MoveValidationResult.Valid
+        every { checkGameStatusUseCase(any()) } returns GameStatusResult.InProgress
+
+        viewModel.onCellClicked(0)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.Playing)
+            assertEquals(PlayerUi.O, (state as TicTacToeState.Playing).currentPlayer)
+        }
+    }
+
+    @Test
+    fun `valid move updates board`() = runTest {
+        every { moveValidationUseCase(any(), any()) } returns MoveValidationResult.Valid
+        every { checkGameStatusUseCase(any()) } returns GameStatusResult.InProgress
+
+        viewModel.onCellClicked(0)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.Playing)
+            assertEquals(
+                BoardUi.empty().applyMove(0, PlayerUi.X),
+                (state as TicTacToeState.Playing).board
+            )
+        }
+    }
+
+    @Test
+    fun `move on already occupied cell shows validation error`() = runTest {
+        savedStateHandle.saveState(
+            TicTacToeState.Playing(
+                board = BoardUi.empty().applyMove(0, PlayerUi.X),
+                currentPlayer = PlayerUi.O
+            )
+        )
+        every {
+            moveValidationUseCase(
+                any(),
+                any()
+            )
+        } returns MoveValidationResult.Invalid.CellAlreadyOccupied
+        viewModel =
+            TicTacToeViewModel(savedStateHandle, moveValidationUseCase, checkGameStatusUseCase)
+
+        viewModel.onCellClicked(0)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.Playing)
+            assertEquals(
+                MoveValidationResultUi.Invalid.CellAlreadyOccupied,
+                (state as TicTacToeState.Playing).moveValidationResult
+            )
+        }
+    }
+
+    @Test
+    fun `move on already occupied cell does not toggle player`() = runTest {
+        savedStateHandle.saveState(
+            TicTacToeState.Playing(
+                board = BoardUi.empty().applyMove(0, PlayerUi.X),
+                currentPlayer = PlayerUi.O
+            )
+        )
+        viewModel =
+            TicTacToeViewModel(savedStateHandle, moveValidationUseCase, checkGameStatusUseCase)
+
+        viewModel.onCellClicked(0)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.Playing)
+            assertEquals(PlayerUi.X, (state as TicTacToeState.Playing).currentPlayer)
+        }
+    }
+
+    @Test
+    fun `game ends when win condition met`() = runTest {
+        every { moveValidationUseCase(any(), any()) } returns MoveValidationResult.Valid
+        every { checkGameStatusUseCase(any()) } returns GameStatusResult.GameOver.Won(Player.X)
+
+        viewModel.onCellClicked(0)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.GameOver)
+            assertEquals(
+                GameStatusResultUi.GameOver.Won(PlayerUi.X),
+                (state as TicTacToeState.GameOver).gameOutcome
+            )
+        }
+    }
+
+    @Test
+    fun `game ends in draw when board is full and no winner`() = runTest {
+        every { moveValidationUseCase(any(), any()) } returns MoveValidationResult.Valid
+        every { checkGameStatusUseCase(any()) } returns GameStatusResult.GameOver.Draw
+
+        viewModel.onCellClicked(0)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.GameOver)
+            assertEquals(
+                GameStatusResultUi.GameOver.Draw,
+                (state as TicTacToeState.GameOver).gameOutcome
+            )
+        }
+    }
+
+    @Test
+    fun `new game resets the board after game over`() = runTest {
+        savedStateHandle.saveState(TicTacToeState.GameOver(GameStatusResultUi.GameOver.Won(PlayerUi.X)))
+        viewModel =
+            TicTacToeViewModel(savedStateHandle, moveValidationUseCase, checkGameStatusUseCase)
+
+        viewModel.onNewGameClicked()
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.Playing)
+            assertEquals(PlayerUi.X, (state as TicTacToeState.Playing).currentPlayer)
+        }
+    }
+
+    @Test
+    fun `new game does nothing if game is still in progress`() = runTest {
+        every { moveValidationUseCase(any(), any()) } returns MoveValidationResult.Valid
+        every { checkGameStatusUseCase(any()) } returns GameStatusResult.InProgress
+
+        viewModel.onNewGameClicked()
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.Playing)
+        }
+    }
+
+    @Test
+    fun `cell click ignored after game is over`() = runTest {
+        val gameOver = GameStatusResultUi.GameOver.Won(PlayerUi.X)
+        savedStateHandle.saveState(TicTacToeState.GameOver(gameOver))
+        viewModel =
+            TicTacToeViewModel(savedStateHandle, moveValidationUseCase, checkGameStatusUseCase)
+
+        viewModel.onCellClicked(0)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state is TicTacToeState.GameOver)
+            assertEquals(gameOver, (state as TicTacToeState.GameOver).gameOutcome)
+        }
     }
 }

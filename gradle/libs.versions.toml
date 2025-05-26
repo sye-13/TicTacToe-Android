@@ -41,6 +41,7 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigation" }
 kotlinx-serialization-core-jvm = { group = "org.jetbrains.kotlinx", name= "kotlinx-serialization-core-jvm", version.ref = "kotlinSerialization" }
 org-junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junitJupiter" }
+org-junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junitJupiter" }
 io-mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines-test" }
 app-cash-turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }

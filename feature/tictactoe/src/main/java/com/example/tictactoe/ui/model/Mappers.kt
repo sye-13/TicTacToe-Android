@@ -6,42 +6,9 @@ import com.example.tictactoe.domain.model.Player
 import com.example.tictactoe.domain.usecase.GameStatusResult
 import com.example.tictactoe.domain.usecase.MoveValidationResult
 
-fun Cell.toUiModel(): CellUi {
-    return when (this) {
-        is Cell.Empty -> CellUi.Empty
-        is Cell.Occupied -> CellUi.Occupied(
-            player = this.player.toUiModel(),
-            isHighlighted = this.isHighlighted
-        )
-    }
-}
-
-fun Board.toUiModel(): BoardUi {
-    val cellUis = cells.map { cell -> cell.toUiModel() }
-    return BoardUi(cells = cellUis)
-}
-
-fun CellUi.toEntity(): Cell {
-    return when (this) {
-        is CellUi.Empty -> Cell.Empty
-        is CellUi.Occupied -> Cell.Occupied(
-            player = this.player.toEntity(),
-            isHighlighted = this.isHighlighted
-        )
-    }
-}
-
 fun BoardUi.toEntity(): Board {
     val cells = cells.map { cellUi -> cellUi.toEntity() }
     return Board(cells = cells)
-}
-
-fun MoveValidationResultUi.toEntity(): MoveValidationResult {
-    return when (this) {
-        MoveValidationResultUi.Invalid.CellAlreadyOccupied -> MoveValidationResult.Invalid.CellAlreadyOccupied
-        MoveValidationResultUi.Invalid.CellOutOfBound -> MoveValidationResult.Invalid.CellOutOfBound
-        MoveValidationResultUi.Valid -> MoveValidationResult.Valid
-    }
 }
 
 fun MoveValidationResult.toUiModel(): MoveValidationResultUi {
@@ -49,14 +16,6 @@ fun MoveValidationResult.toUiModel(): MoveValidationResultUi {
         MoveValidationResult.Invalid.CellAlreadyOccupied -> MoveValidationResultUi.Invalid.CellAlreadyOccupied
         MoveValidationResult.Invalid.CellOutOfBound -> MoveValidationResultUi.Invalid.CellOutOfBound
         MoveValidationResult.Valid -> MoveValidationResultUi.Valid
-    }
-}
-
-fun GameStatusResultUi.toEntity(): GameStatusResult {
-    return when (this) {
-        GameStatusResultUi.InProgress -> GameStatusResult.InProgress
-        GameStatusResultUi.GameOver.Draw -> GameStatusResult.GameOver.Draw
-        is GameStatusResultUi.GameOver.Won -> GameStatusResult.GameOver.Won(winner = winner.toEntity())
     }
 }
 
@@ -68,16 +27,32 @@ fun GameStatusResult.toUiModel(): GameStatusResultUi {
     }
 }
 
-fun PlayerUi.toEntity(): Player {
-    return when (this) {
-        PlayerUi.X -> Player.X
-        PlayerUi.O -> Player.O
-    }
-}
-
 fun Player.toUiModel(): PlayerUi {
     return when (this) {
         Player.X -> PlayerUi.X
         Player.O -> PlayerUi.O
+    }
+}
+
+fun BoardUi.applyMove(cellIndex: Int, player: PlayerUi): BoardUi {
+    val newCells = cells.toMutableList()
+    newCells[cellIndex] = CellUi.Occupied(player)
+    return BoardUi(newCells)
+}
+
+private fun CellUi.toEntity(): Cell {
+    return when (this) {
+        is CellUi.Empty -> Cell.Empty
+        is CellUi.Occupied -> Cell.Occupied(
+            player = player.toEntity(),
+            isHighlighted = isHighlighted
+        )
+    }
+}
+
+private fun PlayerUi.toEntity(): Player {
+    return when (this) {
+        PlayerUi.X -> Player.X
+        PlayerUi.O -> Player.O
     }
 }
