@@ -14,6 +14,10 @@ kotlinSerialization = "1.7.3"
 kotlinSerializationPlugin = "2.0.21"
 navigation = "2.9.0"
 hiltNavigation = "1.2.0"
+junitJupiter = "5.7.1"
+mockk = "1.12.0"
+kotlinxCoroutines-test = "1.5.1"
+turbine = "0.7.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +40,10 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name= "kotlinx-s
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigation" }
 kotlinx-serialization-core-jvm = { group = "org.jetbrains.kotlinx", name= "kotlinx-serialization-core-jvm", version.ref = "kotlinSerialization" }
+org-junit-jupiter-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junitJupiter" }
+io-mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines-test" }
+app-cash-turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
