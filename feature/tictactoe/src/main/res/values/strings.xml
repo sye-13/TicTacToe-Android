@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Player indicator -->
+    <string name="current_player">Your turn: Player %1$s</string>
+
+    <!-- Move validation errors -->
+    <string name="invalid_move_already_occupied">That cell is already taken. Choose a different one.</string>
+    <string name="invalid_move_out_of_bound">Invalid move. Select a cell within the board.</string>
+
+    <!-- Game status -->
+    <string name="game_over">Game over</string>
+    <string name="new_game">Play Again</string>
+
+    <!-- Game outcomes -->
+    <string name="outcome_draw">It\'s a draw!</string>
+    <string name="outcome_winner">Player %1$s won. GG!</string>
+</resources>

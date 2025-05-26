@@ -16,10 +16,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.designsystem.ui.theme.TicTacToeTheme
+import com.example.tictactoe.R
 import com.example.tictactoe.domain.model.Player
 import com.example.tictactoe.domain.usecase.GameStatusResult
 import com.example.tictactoe.domain.usecase.MoveValidationResult
@@ -66,7 +68,7 @@ private fun Playing(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Player: $currentPlayer",
+            text = stringResource(R.string.current_player, currentPlayer),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
@@ -84,8 +86,8 @@ private fun Playing(
             moveValidationResult?.let {
                 Text(
                     text = when (it) {
-                        is MoveValidationResult.Invalid.CellOutOfBound -> "Invalid move. Select a cell within the board."
-                        is MoveValidationResult.Invalid.CellAlreadyOccupied -> "That cell is already taken. Choose a different one."
+                        is MoveValidationResult.Invalid.CellOutOfBound -> stringResource(R.string.invalid_move_out_of_bound)
+                        is MoveValidationResult.Invalid.CellAlreadyOccupied -> stringResource(R.string.invalid_move_already_occupied)
                         MoveValidationResult.Valid -> ""
                     },
                     color = Color.Red,
@@ -150,7 +152,7 @@ fun GameOver(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Game over",
+            text = stringResource(R.string.game_over),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
@@ -159,14 +161,14 @@ fun GameOver(
 
         when (gameOutcome) {
             is GameStatusResult.GameOver.Draw -> Text(
-                text = "Draw",
+                text = stringResource(R.string.outcome_draw),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center
             )
 
             is GameStatusResult.GameOver.Won ->
                 Text(
-                    text = "Winner: ${gameOutcome.winner.name}",
+                    text = stringResource(R.string.outcome_winner, gameOutcome.winner.name),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center
                 )
@@ -176,7 +178,7 @@ fun GameOver(
 
         Button(
             onClick = { onNewGameClicked() }) {
-            Text(text = "New game")
+            Text(text = stringResource(R.string.new_game))
         }
     }
 }

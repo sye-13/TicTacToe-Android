@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Player indicator -->
+    <string name="current_player">À toi de jouer : Joueur %1$s</string>
+
+    <!-- Move validation errors -->
+    <string name="invalid_move_already_occupied">Cette case est déjà prise. Choisissez-en une autre.</string>
+    <string name="invalid_move_out_of_bound">Coup invalide. Sélectionnez une case dans la grille.</string>
+
+    <!-- Game status -->
+    <string name="game_over">Partie terminée</string>
+    <string name="new_game">Rejouer</string>
+
+    <!-- Game outcomes -->
+    <string name="outcome_draw">Égalité !</string>
+    <string name="outcome_winner">Joueur %1$s a gagné. Bien joué !</string>
+</resources>
