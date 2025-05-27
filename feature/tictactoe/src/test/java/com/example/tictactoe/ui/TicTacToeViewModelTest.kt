@@ -153,6 +153,12 @@ class TicTacToeViewModelTest {
                 currentPlayer = PlayerUi.O
             )
         )
+        every {
+            moveValidationUseCase(
+                any(),
+                any()
+            )
+        } returns MoveValidationResult.Invalid.CellAlreadyOccupied
         viewModel =
             TicTacToeViewModel(savedStateHandle, moveValidationUseCase, checkGameStatusUseCase)
 
@@ -161,7 +167,7 @@ class TicTacToeViewModelTest {
         viewModel.uiState.test {
             val state = expectMostRecentItem()
             assertTrue(state is TicTacToeState.Playing)
-            assertEquals(PlayerUi.X, (state as TicTacToeState.Playing).currentPlayer)
+            assertEquals(PlayerUi.O, (state as TicTacToeState.Playing).currentPlayer)
         }
     }
 
