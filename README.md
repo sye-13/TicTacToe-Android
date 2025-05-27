@@ -30,7 +30,7 @@ A simple Tic Tac Toe implementation built with Kotlin and Jetpack Compose, empha
 - **JUnit & MockK**: testing and mocking
 - **Multi-module Project**: isolates core and feature modules
 - **Localization**: supports English and French
-- **Accessibility**: ses content descriptions and semantics for screen reader support
+- **Accessibility**: uses content descriptions and semantics for screen reader support
 
 ---
 
