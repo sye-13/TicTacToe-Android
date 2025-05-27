@@ -21,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 
+private const val savedStateKey = "savedState"
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class TicTacToeViewModelTest {
 
@@ -118,12 +120,12 @@ class TicTacToeViewModelTest {
 
     @Test
     fun `move on already occupied cell shows validation error`() = runTest {
-        savedStateHandle.saveState(
+        savedStateHandle[savedStateKey] =
             TicTacToeState.Playing(
                 board = BoardUi.empty().applyMove(0, PlayerUi.X),
                 currentPlayer = PlayerUi.O
             )
-        )
+
         every {
             moveValidationUseCase(
                 any(),
@@ -147,12 +149,11 @@ class TicTacToeViewModelTest {
 
     @Test
     fun `move on already occupied cell does not toggle player`() = runTest {
-        savedStateHandle.saveState(
+        savedStateHandle[savedStateKey] =
             TicTacToeState.Playing(
                 board = BoardUi.empty().applyMove(0, PlayerUi.X),
                 currentPlayer = PlayerUi.O
             )
-        )
         every {
             moveValidationUseCase(
                 any(),
@@ -207,7 +208,8 @@ class TicTacToeViewModelTest {
 
     @Test
     fun `new game resets the board after game over`() = runTest {
-        savedStateHandle.saveState(TicTacToeState.GameOver(GameStatusResultUi.GameOver.Won(PlayerUi.X)))
+        savedStateHandle[savedStateKey] =
+            TicTacToeState.GameOver(GameStatusResultUi.GameOver.Won(PlayerUi.X))
         viewModel =
             TicTacToeViewModel(savedStateHandle, moveValidationUseCase, checkGameStatusUseCase)
 
@@ -236,7 +238,7 @@ class TicTacToeViewModelTest {
     @Test
     fun `cell click ignored after game is over`() = runTest {
         val gameOver = GameStatusResultUi.GameOver.Won(PlayerUi.X)
-        savedStateHandle.saveState(TicTacToeState.GameOver(gameOver))
+        savedStateHandle[savedStateKey] = TicTacToeState.GameOver(gameOver)
         viewModel =
             TicTacToeViewModel(savedStateHandle, moveValidationUseCase, checkGameStatusUseCase)
 

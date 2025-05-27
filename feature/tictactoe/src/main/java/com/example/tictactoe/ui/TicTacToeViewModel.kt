@@ -1,5 +1,6 @@
 package com.example.tictactoe.ui
 
+import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -20,15 +21,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 import javax.inject.Inject
 
-sealed interface TicTacToeState {
+@Parcelize
+sealed interface TicTacToeState : Parcelable {
+
+    @Parcelize
     data class Playing(
         val board: BoardUi = BoardUi.empty(),
         val currentPlayer: PlayerUi = PlayerUi.X,
         val moveValidationResult: MoveValidationResultUi? = null,
     ) : TicTacToeState
 
+    @Parcelize
     data class GameOver(val gameOutcome: GameStatusResultUi.GameOver) : TicTacToeState
 }
 
@@ -39,8 +45,12 @@ class TicTacToeViewModel @Inject constructor(
     private val checkGameStatusUseCase: CheckGameStatusUseCase,
 ) : ViewModel() {
 
+    companion object {
+        private const val savedStateKey = "savedState"
+    }
+
     private val _uiState: MutableStateFlow<TicTacToeState> =
-        MutableStateFlow(savedStateHandle.restoreState())
+        savedStateHandle.getMutableStateFlow(savedStateKey, TicTacToeState.Playing())
 
     val uiState: StateFlow<TicTacToeState> = _uiState.asStateFlow()
 
@@ -84,6 +94,6 @@ class TicTacToeViewModel @Inject constructor(
 
     private fun updateState(newState: TicTacToeState) {
         _uiState.update { newState }
-        savedStateHandle.saveState(_uiState.value)
+        savedStateHandle[savedStateKey] = newState
     }
 }

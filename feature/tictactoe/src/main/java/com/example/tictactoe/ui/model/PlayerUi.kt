@@ -1,3 +1,7 @@
 package com.example.tictactoe.ui.model
 
-enum class PlayerUi { X, O }
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+enum class PlayerUi : Parcelable { X, O }

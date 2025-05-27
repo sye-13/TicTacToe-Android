@@ -1,10 +1,20 @@
 package com.example.tictactoe.ui.model
 
-sealed interface MoveValidationResultUi {
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+sealed interface MoveValidationResultUi : Parcelable {
+    @Parcelize
     data object Valid : MoveValidationResultUi
+
+    @Parcelize
     sealed interface Invalid : MoveValidationResultUi {
+
+        @Parcelize
         data object CellOutOfBound : Invalid
 
+        @Parcelize
         data object CellAlreadyOccupied : Invalid
     }
 }
