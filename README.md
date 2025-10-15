@@ -8,7 +8,7 @@ A simple Tic Tac Toe implementation built with Kotlin and Jetpack Compose, empha
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/2025-DEV2-001/MyTest.git
+    git clone https://github.com/sye-13/MyTest.git
     ```
 2. Open the project in Android Studio.
 3. Build the project and run it on an emulator or physical device.
@@ -73,5 +73,3 @@ A unidirectional data flow ensures predictable state transitions and simplifies 
 ## Testing Strategy
 
 Unit tests are included to validate use cases and ViewModel behavior. Dependencies are mocked to isolate logic and ensure tests remain focused and deterministic.
-
-> Test-Driven Development (TDD) was not followed in this implementation. While the benefits of TDD are understood, it’s not a practice I’ve extensively used before. This is noted here for full transparency, as requested.
