@@ -8,7 +8,7 @@ A simple Tic Tac Toe implementation built with Kotlin and Jetpack Compose, empha
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/sye-13/MyTest.git
+    git clone https://github.com/sye-13/TicTacToe-Android.git
     ```
 2. Open the project in Android Studio.
 3. Build the project and run it on an emulator or physical device.
